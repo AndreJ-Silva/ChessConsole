@@ -6,10 +6,9 @@ internal class Program {
 		Board board = new();
 
 		try {
-			board.Add(new Rook(board), new Position(0, 0));
-			board.Add(new Rook(board), new Position(1, 2));
-			board.Add(new Rook(board), new Position(2, 4));
-			Draw(board);
+			Position pos = ReadPosition();
+
+			Console.WriteLine("{0}, {1}", pos.Row, pos.Column);
 		} catch (Exception e) {
 			Console.WriteLine(e.Message);
 		}
@@ -30,5 +29,16 @@ internal class Program {
 			Console.Write("{0} ", piece);
 		else
 			Console.Write("{0} ", "\u00B7");
+	}
+
+	private static Position ReadPosition() {
+		string pos = Console.ReadLine()!;
+		char column = pos[0];
+		int row = int.Parse(pos[1].ToString());
+
+		if (row <= 0 || row > 8 || column < 'a' || column > 'h')
+			throw new InvalidOperationException("Wrong coordinates. Try again");
+
+		return new(8 - row, column - 'a');
 	}
 }
