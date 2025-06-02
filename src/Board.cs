@@ -15,6 +15,14 @@ public class Board {
 		}
 	}
 
+	public Piece? this[Position pos] {
+		get {
+			if (!IsValidPosition(pos))
+				throw new IndexOutOfRangeException("Invalid Position");
+			return _pieces[pos.Row, pos.Column];
+		}
+	}
+
 	public bool IsValidPosition(Position pos)
 		=> pos.Row >= 0 && pos.Row < Dimensions && pos.Column >= 0 && pos.Column < Dimensions;
 
