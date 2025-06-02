@@ -1,5 +1,11 @@
-﻿internal class Program {
+﻿using ChessConsole;
+
+internal class Program {
 	private static void Main(string[] args) {
-		Console.WriteLine("Hello, World!");
+		Position pos = new(3, 2);
+
+		Console.WriteLine("{0}, {1}", pos.Row, pos.Column);
+
+		Board board = new();
 	}
 }
