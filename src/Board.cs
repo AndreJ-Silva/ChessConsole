@@ -35,4 +35,13 @@ public class Board {
 		piece.Position = pos;
 		_pieces[pos.Row, pos.Column] = piece;
 	}
+
+	public Piece? RemoveAt(Position pos) {
+		if (this[pos] is Piece piece) {
+			piece.Position = null;
+			_pieces[pos.Row, pos.Column] = null;
+			return piece;
+		}
+		return null;
+	}
 }

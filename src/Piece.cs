@@ -12,4 +12,10 @@ public class Piece {
 		MoveCount = 0;
 		Board = board;
 	}
+
+	public void IncreaseMovements()
+		=> MoveCount++;
+
+	public void DecreaseMovements()
+		=> MoveCount--;
 }

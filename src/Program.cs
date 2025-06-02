@@ -1,17 +1,30 @@
 ﻿using ChessConsole;
-using ChessConsole.Pieces;
 
 internal class Program {
 	private static void Main(string[] args) {
-		Board board = new();
+		Game game = new();
+		Draw(game);
 
-		try {
-			Position pos = ReadPosition();
+		while (!game.IsCheckMate) {
+			try {
+				Console.Write("From: ");
+				Position x = ReadPosition();
+				Console.Write("To: ");
+				Position y = ReadPosition();
 
-			Console.WriteLine("{0}, {1}", pos.Row, pos.Column);
-		} catch (Exception e) {
-			Console.WriteLine(e.Message);
+				game.DoMove(x, y);
+
+				Draw(game);
+			} catch (Exception e) {
+				Draw(game);
+				Console.WriteLine(e.Message);
+			}
 		}
+	}
+
+	private static void Draw(Game game) {
+		Console.Clear();
+		Draw(game.Board);
 	}
 
 	private static void Draw(Board board) {
