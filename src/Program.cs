@@ -1,9 +1,12 @@
 ﻿using ChessConsole;
+using ChessConsole.Pieces;
 
 internal class Program {
 	private static void Main(string[] args) {
 		Board board = new();
-
+		board.Add(new Rook(board), new Position(0, 0));
+		board.Add(new Rook(board), new Position(1, 2));
+		board.Add(new Rook(board), new Position(2, 4));
 		Draw(board);
 	}
 

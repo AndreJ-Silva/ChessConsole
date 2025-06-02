@@ -20,4 +20,11 @@ public class Board {
 
 	public bool HasPiece(Position pos)
 		=> this[pos.Row, pos.Column] is not null;
+
+	public void Add(Piece piece, Position pos) {
+		if (HasPiece(pos))
+			throw new InvalidOperationException("There is a piece in that position!");
+		piece.Position = pos;
+		_pieces[pos.Row, pos.Column] = piece;
+	}
 }
