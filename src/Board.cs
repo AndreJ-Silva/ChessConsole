@@ -6,4 +6,18 @@ public class Board {
 
 	public Board()
 		=> _pieces = new Piece[Dimensions, Dimensions];
+
+	public Piece? this[int row, int column] {
+		get {
+			if (!IsValidPosition(new Position(row, column)))
+				throw new IndexOutOfRangeException("Invalid Position");
+			return _pieces[row, column];
+		}
+	}
+
+	public bool IsValidPosition(Position pos)
+		=> pos.Row >= 0 && pos.Row < Dimensions && pos.Column >= 0 && pos.Column < Dimensions;
+
+	public bool HasPiece(Position pos)
+		=> this[pos.Row, pos.Column] is not null;
 }
