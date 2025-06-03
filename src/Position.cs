@@ -8,4 +8,9 @@ public class Position {
 		Row = row;
 		Column = column;
 	}
+
+	public void ChangeValues(int row, int column) {
+		Row = row;
+		Column = column;
+	}
 }

@@ -7,9 +7,10 @@ internal class Program {
 
 		while (!game.IsCheckMate) {
 			try {
-				Console.Write("From: ");
+				Console.Write("\nFrom: ");
 				Position x = ReadPosition();
-				Console.Write("To: ");
+				Draw(game, x);
+				Console.Write("\nTo: ");
 				Position y = ReadPosition();
 
 				game.DoMove(x, y);
@@ -25,6 +26,44 @@ internal class Program {
 	private static void Draw(Game game) {
 		Console.Clear();
 		Draw(game.Board);
+	}
+
+	private static void Draw(Game game, Position pos) {
+		Console.Clear();
+		var moves = game.Board[pos]?.PossibleMoves();
+
+		if (moves is null) {
+			Draw(game);
+			return;
+		}
+
+		for (int i = 0; i < Board.Dimensions; i++) {
+			Console.Write("{0} ", (8 - i));
+			for (int j = 0; j < Board.Dimensions; j++) {
+				if (moves[i, j]) {
+					if (i > pos.Row && j == pos.Column)
+						Console.Write("{0} ", "\u2193");
+					else if (i < pos.Row && j == pos.Column)
+						Console.Write("{0} ", "\u2191");
+					else if (i == pos.Row && j < pos.Column)
+						Console.Write("{0} ", "\u2190");
+					else if (i == pos.Row && j > pos.Column)
+						Console.Write("{0} ", "\u2192");
+					else if (i > pos.Row && j > pos.Column)
+						Console.Write("{0} ", "\u2198");
+					else if (i < pos.Row && j > pos.Column)
+						Console.Write("{0} ", "\u2197");
+					else if (i > pos.Row && j < pos.Column)
+						Console.Write("{0} ", "\u2199");
+					else if (i < pos.Row && j < pos.Column)
+						Console.Write("{0} ", "\u2196");
+				} else {
+					Draw(game.Board[i, j]);
+				}
+			}
+			Console.WriteLine();
+		}
+		Console.WriteLine("  A B C D E F G H");
 	}
 
 	private static void Draw(Board board) {
