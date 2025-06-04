@@ -27,6 +27,19 @@ public abstract class Piece {
 
 	public abstract bool[,] PossibleMoves();
 
+	public bool PossibleMove(Position pos)
+		=> PossibleMoves()[pos.Row, pos.Column];
+
+	public bool AnyPossibleMove() {
+		var moves = PossibleMoves();
+		for (int i = 0; i < Board.Dimensions; i++) {
+			for (int j = 0; j < Board.Dimensions; j++)
+				if (moves[i, j])
+					return true;
+		}
+		return false;
+	}
+
 	public void IncreaseMovements()
 		=> MoveCount++;
 

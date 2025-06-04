@@ -9,33 +9,42 @@ internal class Program {
 			try {
 				Console.Write("\nFrom: ");
 				Position x = ReadPosition();
+				game.ValidateMoveFrom(x);
+
 				Draw(game, x);
+
 				Console.Write("\nTo: ");
 				Position y = ReadPosition();
+				game.ValidateMoveTo(x, y);
 
-				game.DoMove(x, y);
+				game.Move(x, y);
 
 				Draw(game);
 			} catch (Exception e) {
-				Draw(game);
-				Console.WriteLine(e.Message);
+				Draw(game, e);
 			}
 		}
 	}
 
-	private static void Draw(Game game) {
+	private static void Draw(Game game, Exception? ex = null) {
 		Console.Clear();
 		Draw(game.Board);
+
+		if (ex is not null)
+			Console.WriteLine("\n{0}", ex.Message);
+
+		Console.WriteLine("\nTurn: {0}", game.Turn);
+
+		if (!game.IsCheckMate) {
+			Console.WriteLine("Waiting for the move: {0}", game.IsWhiteTurn ? "White" : "Black");
+		} else {
+			Console.WriteLine("Checkmate! Congratulations!");
+		}
 	}
 
 	private static void Draw(Game game, Position pos) {
 		Console.Clear();
-		var moves = game.Board[pos]?.PossibleMoves();
-
-		if (moves is null) {
-			Draw(game);
-			return;
-		}
+		var moves = game.Board[pos]!.PossibleMoves();
 
 		for (int i = 0; i < Board.Dimensions; i++) {
 			Console.Write("{0} ", (8 - i));
