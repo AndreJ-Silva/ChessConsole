@@ -40,7 +40,8 @@ internal class Program {
 			if (game.Check)
 				Console.WriteLine("[Current player is in check]");
 		} else {
-			Console.WriteLine("Checkmate! Congratulations!");
+			Console.WriteLine("Checkmate!");
+			Console.WriteLine("Winner: {0}", game.IsWhiteTurn ? "White" : "Black");
 		}
 	}
 

@@ -32,7 +32,10 @@ public class Game {
 
 		Check = IsInCheck(!IsWhiteTurn);
 
-		TurnRound();
+		if (Checkmate(!IsWhiteTurn))
+			IsCheckMate = true;
+		else
+			TurnRound();
 	}
 
 	public void ValidateMoveFrom(Position posX) {
@@ -64,6 +67,30 @@ public class Game {
 		return false;
 	}
 
+	private bool Checkmate(bool isWhite) {
+		if (!IsInCheck(isWhite))
+			return false;
+
+		foreach (Piece piece in AvailablePieces(isWhite)) {
+			var moves = piece.PossibleMoves();
+			for (int i = 0; i < Board.Dimensions; i++) {
+				for (int j = 0; j < Board.Dimensions; j++) {
+					if (moves[i, j]) {
+						Position posX = piece.Position!;
+						Position posY = new(i, j);
+						Piece? target = DoMove(posX, posY);
+						bool isCheckmate = IsInCheck(isWhite);
+						UndoMove(posX, posY, target);
+						if (!isCheckmate)
+							return false;
+					}
+				}
+			}
+		}
+
+		return true;
+	}
+
 	private void AddPieces() {
 		{ // White pieces
 			Rook rook = new(Board, true);
@@ -71,7 +98,7 @@ public class Game {
 			_pieces.Add(rook);
 
 			rook = new Rook(Board, true);
-			Board.Add(rook, new Position(7, 7));
+			Board.Add(rook, new Position(1, 7));
 			_pieces.Add(rook);
 
 			King king = new(Board, true);
@@ -81,7 +108,7 @@ public class Game {
 
 		{ // Black pieces
 			Rook rook = new(Board);
-			Board.Add(rook, new Position(0, 0));
+			Board.Add(rook, new Position(0, 1));
 			_pieces.Add(rook);
 
 			rook = new Rook(Board);
@@ -89,7 +116,7 @@ public class Game {
 			_pieces.Add(rook);
 
 			King king = new(Board);
-			Board.Add(king, new Position(0, 4));
+			Board.Add(king, new Position(0, 0));
 			_pieces.Add(king);
 		}
 	}
