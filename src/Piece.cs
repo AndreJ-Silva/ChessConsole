@@ -13,17 +13,8 @@ public abstract class Piece {
 		Board = board;
 	}
 
-	public override bool Equals(object? obj) {
-		if (obj is not Piece other)
-			return false;
-		return IsWhite.Equals(other.IsWhite);
-	}
-
-	public override int GetHashCode()
-		=> IsWhite.GetHashCode();
-
 	protected bool CanMove(Position pos)
-		=> Board[pos] is not Piece piece || !Equals(piece);
+		=> Board[pos] is not Piece piece || !IsWhite.Equals(piece.IsWhite);
 
 	public abstract bool[,] PossibleMoves();
 

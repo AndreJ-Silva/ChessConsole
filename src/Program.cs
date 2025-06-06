@@ -37,6 +37,8 @@ internal class Program {
 
 		if (!game.IsCheckMate) {
 			Console.WriteLine("Waiting for the move: {0}", game.IsWhiteTurn ? "White" : "Black");
+			if (game.Check)
+				Console.WriteLine("[Current player is in check]");
 		} else {
 			Console.WriteLine("Checkmate! Congratulations!");
 		}

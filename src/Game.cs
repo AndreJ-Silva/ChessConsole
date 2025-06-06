@@ -3,21 +3,34 @@ using ChessConsole.Pieces;
 namespace ChessConsole;
 
 public class Game {
+	private readonly HashSet<Piece> _pieces;
+	private readonly HashSet<Piece> _captured;
 	public Board Board { get; private set; }
 	public int Turn { get; private set; }
 	public bool IsWhiteTurn { get; private set; }
 	public bool IsCheckMate { get; private set; }
+	public bool Check { get; private set; }
 
 	public Game() {
 		Board = new();
 		Turn = 1;
 		IsWhiteTurn = true;
 		IsCheckMate = false;
+		Check = false;
+		_pieces = [];
+		_captured = [];
 		AddPieces();
 	}
 
 	public void Move(Position posX, Position posY) {
 		Piece? target = DoMove(posX, posY);
+
+		if (IsInCheck(IsWhiteTurn)) {
+			UndoMove(posX, posY, target);
+			throw new InvalidOperationException("You can't put yourself in check");
+		}
+
+		Check = IsInCheck(!IsWhiteTurn);
 
 		TurnRound();
 	}
@@ -38,27 +51,46 @@ public class Game {
 			throw new InvalidOperationException("Invalid movement");
 	}
 
+	private bool IsInCheck(bool isWhite) {
+		Piece? k = GetKing(isWhite);
+		ArgumentNullException.ThrowIfNull(k);
+
+		foreach (Piece piece in AvailablePieces(!isWhite)) {
+			var moves = piece.PossibleMoves();
+			if (moves[k.Position!.Row, k.Position.Column])
+				return true;
+		}
+
+		return false;
+	}
+
 	private void AddPieces() {
 		{ // White pieces
 			Rook rook = new(Board, true);
 			Board.Add(rook, new Position(7, 0));
+			_pieces.Add(rook);
 
 			rook = new Rook(Board, true);
 			Board.Add(rook, new Position(7, 7));
+			_pieces.Add(rook);
 
-			King king = new King(Board, true);
+			King king = new(Board, true);
 			Board.Add(king, new Position(7, 4));
+			_pieces.Add(king);
 		}
 
 		{ // Black pieces
 			Rook rook = new(Board);
 			Board.Add(rook, new Position(0, 0));
+			_pieces.Add(rook);
 
 			rook = new Rook(Board);
 			Board.Add(rook, new Position(0, 7));
+			_pieces.Add(rook);
 
-			King king = new King(Board);
+			King king = new(Board);
 			Board.Add(king, new Position(0, 4));
+			_pieces.Add(king);
 		}
 	}
 
@@ -71,11 +103,38 @@ public class Game {
 
 		Board.Add(piece, posY);
 
+		if (target is not null)
+			_captured.Add(target);
+
 		return target;
+	}
+
+	private void UndoMove(Position posX, Position posY, Piece? target) {
+		Piece? piece = Board.RemoveAt(posY);
+		piece!.DecreaseMovements();
+
+		if (target is not null) {
+			Board.Add(target, posY);
+			_captured.Remove(target);
+		}
+
+		Board.Add(piece!, posX);
 	}
 
 	private void TurnRound() {
 		IsWhiteTurn = !IsWhiteTurn;
 		Turn++;
 	}
+
+	private HashSet<Piece> Captured(bool isWhite)
+		=> _captured.Where(x => x.IsWhite.Equals(isWhite)).ToHashSet();
+
+	private HashSet<Piece> AvailablePieces(bool isWhite) {
+		var pieces = _pieces.Where(x => x.IsWhite.Equals(isWhite)).ToHashSet();
+		pieces.ExceptWith(Captured(isWhite));
+		return pieces;
+	}
+
+	private Piece? GetKing(bool isWhite)
+		=> AvailablePieces(isWhite).SingleOrDefault(x => x is King);
 }
