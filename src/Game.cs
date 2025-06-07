@@ -93,31 +93,83 @@ public class Game {
 
 	private void AddPieces() {
 		{ // White pieces
+			for (int i = 0; i < Board.Dimensions; i++) {
+				Pawn pawn = new(Board, true);
+				Board.Add(pawn, new Position(6, i));
+				_pieces.Add(pawn);
+			}
+
 			Rook rook = new(Board, true);
 			Board.Add(rook, new Position(7, 0));
 			_pieces.Add(rook);
 
 			rook = new Rook(Board, true);
-			Board.Add(rook, new Position(1, 7));
+			Board.Add(rook, new Position(7, 7));
 			_pieces.Add(rook);
+
+			Knight knight = new(Board, true);
+			Board.Add(knight, new Position(7, 1));
+			_pieces.Add(knight);
+
+			knight = new Knight(Board, true);
+			Board.Add(knight, new Position(7, 6));
+			_pieces.Add(knight);
+
+			Bishop bishop = new(Board, true);
+			Board.Add(bishop, new Position(7, 2));
+			_pieces.Add(bishop);
+
+			bishop = new Bishop(Board, true);
+			Board.Add(bishop, new Position(7, 5));
+			_pieces.Add(bishop);
 
 			King king = new(Board, true);
 			Board.Add(king, new Position(7, 4));
 			_pieces.Add(king);
+
+			Queen queen = new(Board, true);
+			Board.Add(queen, new Position(7, 3));
+			_pieces.Add(queen);
 		}
 
 		{ // Black pieces
+			for (int i = 0; i < Board.Dimensions; i++) {
+				Pawn pawn = new(Board);
+				Board.Add(pawn, new Position(1, i));
+				_pieces.Add(pawn);
+			}
+
 			Rook rook = new(Board);
-			Board.Add(rook, new Position(0, 1));
+			Board.Add(rook, new Position(0, 0));
 			_pieces.Add(rook);
 
 			rook = new Rook(Board);
 			Board.Add(rook, new Position(0, 7));
 			_pieces.Add(rook);
 
+			Knight knight = new(Board);
+			Board.Add(knight, new Position(0, 1));
+			_pieces.Add(knight);
+
+			knight = new Knight(Board);
+			Board.Add(knight, new Position(0, 6));
+			_pieces.Add(knight);
+
+			Bishop bishop = new(Board);
+			Board.Add(bishop, new Position(0, 2));
+			_pieces.Add(bishop);
+
+			bishop = new Bishop(Board);
+			Board.Add(bishop, new Position(0, 5));
+			_pieces.Add(bishop);
+
 			King king = new(Board);
-			Board.Add(king, new Position(0, 0));
+			Board.Add(king, new Position(0, 4));
 			_pieces.Add(king);
+
+			Queen queen = new(Board);
+			Board.Add(queen, new Position(0, 3));
+			_pieces.Add(queen);
 		}
 	}
 

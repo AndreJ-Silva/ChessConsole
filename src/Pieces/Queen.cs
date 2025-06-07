@@ -1,10 +1,10 @@
 namespace ChessConsole.Pieces;
 
-public class Rook : Piece {
-	public Rook(Board board, bool isWhite = false) : base(board, isWhite) { }
+public class Queen : Piece {
+	public Queen(Board board, bool isWhite = false) : base(board, isWhite) { }
 
 	public override string ToString()
-		=> IsWhite ? "\u2656" : "\u265C";
+		=> IsWhite ? "\u2655" : "\u265B";
 
 	public override bool[,] PossibleMoves() {
 		ArgumentNullException.ThrowIfNull(Position);
@@ -41,6 +41,42 @@ public class Rook : Piece {
 			moves[pos.Row, pos.Column] = true;
 			if (Board[pos] is Piece other && !other.IsWhite.Equals(IsWhite))
 				break;
+			pos.Column++;
+		}
+
+		pos.ChangeValues(Position.Row - 1, Position.Column - 1);
+		while (Board.IsValidPosition(pos) && CanMove(pos)) {
+			moves[pos.Row, pos.Column] = true;
+			if (Board[pos] is Piece other && !other.IsWhite.Equals(IsWhite))
+				break;
+			pos.Row--;
+			pos.Column--;
+		}
+
+		pos.ChangeValues(Position.Row - 1, Position.Column + 1);
+		while (Board.IsValidPosition(pos) && CanMove(pos)) {
+			moves[pos.Row, pos.Column] = true;
+			if (Board[pos] is Piece other && !other.IsWhite.Equals(IsWhite))
+				break;
+			pos.Row--;
+			pos.Column++;
+		}
+
+		pos.ChangeValues(Position.Row + 1, Position.Column - 1);
+		while (Board.IsValidPosition(pos) && CanMove(pos)) {
+			moves[pos.Row, pos.Column] = true;
+			if (Board[pos] is Piece other && !other.IsWhite.Equals(IsWhite))
+				break;
+			pos.Row++;
+			pos.Column--;
+		}
+
+		pos.ChangeValues(Position.Row + 1, Position.Column + 1);
+		while (Board.IsValidPosition(pos) && CanMove(pos)) {
+			moves[pos.Row, pos.Column] = true;
+			if (Board[pos] is Piece other && !other.IsWhite.Equals(IsWhite))
+				break;
+			pos.Row++;
 			pos.Column++;
 		}
 
