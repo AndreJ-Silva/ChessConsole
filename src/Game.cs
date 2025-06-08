@@ -31,6 +31,19 @@ public class Game {
 			throw new InvalidOperationException("You can't put yourself in check");
 		}
 
+		Piece? piece = Board[posY];
+
+		if (piece is Pawn) {
+			if ((piece.IsWhite && posY.Row == 0) || (!piece.IsWhite && posY.Row == 7)) {
+				Board.RemoveAt(posY);
+				_pieces.Remove(piece);
+				Queen queen = new(Board, piece.IsWhite);
+				Board.Add(queen, posY);
+				_pieces.Add(queen);
+				piece = null;
+			}
+		}
+
 		Check = IsInCheck(!IsWhiteTurn);
 
 		if (Checkmate(!IsWhiteTurn))
@@ -38,8 +51,8 @@ public class Game {
 		else
 			TurnRound();
 
-		if (Board[posY] is Pawn pawn && (posY.Row == posX.Row - 2 || posY.Row == posX.Row + 2))
-			VulnerableEnPassant = pawn;
+		if (piece is Pawn && (posY.Row == posX.Row - 2 || posY.Row == posX.Row + 2))
+			VulnerableEnPassant = piece;
 		else
 			VulnerableEnPassant = null;
 	}
