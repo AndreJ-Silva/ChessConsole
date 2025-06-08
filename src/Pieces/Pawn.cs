@@ -1,7 +1,10 @@
 namespace ChessConsole.Pieces;
 
 public class Pawn : Piece {
-	public Pawn(Board board, bool isWhite = false) : base(board, isWhite) { }
+	private readonly Game _game;
+	public Pawn(Game game, Board board, bool isWhite = false) : base(board, isWhite) {
+		_game = game;
+	}
 
 	public override string ToString()
 		=> IsWhite ? "\u2659" : "\u265F";
@@ -45,6 +48,32 @@ public class Pawn : Piece {
 				moves[pos.Row, pos.Column] = true;
 		}
 
+		EnPassant(moves);
+
 		return moves;
+	}
+
+	private void EnPassant(bool[,] moves) {
+		if (Position!.Row == 3) {
+			Position leftPos = new(Position.Row, Position.Column - 1);
+			if (Board.IsValidPosition(leftPos) && Board[leftPos] is Piece left
+				&& !IsWhite.Equals(left.IsWhite) && left == _game.VulnerableEnPassant)
+				moves[leftPos.Row - 1, leftPos.Column] = true;
+
+			Position rightPos = new(Position.Row, Position.Column + 1);
+			if (Board.IsValidPosition(rightPos) && Board[rightPos] is Piece right
+				&& !IsWhite.Equals(right.IsWhite) && right == _game.VulnerableEnPassant)
+				moves[leftPos.Row - 1, leftPos.Column] = true;
+		} else if (Position!.Row == 4) {
+			Position leftPos = new(Position.Row, Position.Column - 1);
+			if (Board.IsValidPosition(leftPos) && Board[leftPos] is Piece left
+				&& !IsWhite.Equals(left.IsWhite) && left == _game.VulnerableEnPassant)
+				moves[leftPos.Row + 1, leftPos.Column] = true;
+
+			Position rightPos = new(Position.Row, Position.Column + 1);
+			if (Board.IsValidPosition(rightPos) && Board[rightPos] is Piece right
+				&& !IsWhite.Equals(right.IsWhite) && right == _game.VulnerableEnPassant)
+				moves[rightPos.Row + 1, rightPos.Column] = true;
+		}
 	}
 }

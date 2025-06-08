@@ -3,249 +3,281 @@ using ChessConsole.Pieces;
 namespace ChessConsole;
 
 public class Game {
-    private readonly HashSet<Piece> _pieces;
-    private readonly HashSet<Piece> _captured;
-    public Board Board { get; private set; }
-    public int Turn { get; private set; }
-    public bool IsWhiteTurn { get; private set; }
-    public bool IsCheckMate { get; private set; }
-    public bool Check { get; private set; }
+	private readonly HashSet<Piece> _pieces;
+	private readonly HashSet<Piece> _captured;
+	public Board Board { get; private set; }
+	public int Turn { get; private set; }
+	public bool IsWhiteTurn { get; private set; }
+	public bool IsCheckMate { get; private set; }
+	public bool Check { get; private set; }
+	public Piece? VulnerableEnPassant { get; private set; }
 
-    public Game() {
-        Board = new();
-        Turn = 1;
-        IsWhiteTurn = true;
-        IsCheckMate = false;
-        Check = false;
-        _pieces = [];
-        _captured = [];
-        AddPieces();
-    }
+	public Game() {
+		Board = new();
+		Turn = 1;
+		IsWhiteTurn = true;
+		IsCheckMate = false;
+		Check = false;
+		_pieces = [];
+		_captured = [];
+		AddPieces();
+	}
 
-    public void Move(Position posX, Position posY) {
-        Piece? target = DoMove(posX, posY);
+	public void Move(Position posX, Position posY) {
+		Piece? target = DoMove(posX, posY);
 
-        if (IsInCheck(IsWhiteTurn)) {
-            UndoMove(posX, posY, target);
-            throw new InvalidOperationException("You can't put yourself in check");
-        }
+		if (IsInCheck(IsWhiteTurn)) {
+			UndoMove(posX, posY, target);
+			throw new InvalidOperationException("You can't put yourself in check");
+		}
 
-        Check = IsInCheck(!IsWhiteTurn);
+		Check = IsInCheck(!IsWhiteTurn);
 
-        if (Checkmate(!IsWhiteTurn))
-            IsCheckMate = true;
-        else
-            TurnRound();
-    }
+		if (Checkmate(!IsWhiteTurn))
+			IsCheckMate = true;
+		else
+			TurnRound();
 
-    public void ValidateMoveFrom(Position posX) {
-        if (Board[posX] is not Piece piece)
-            throw new InvalidOperationException("There is no piece in the selected position");
+		if (Board[posY] is Pawn pawn && (posY.Row == posX.Row - 2 || posY.Row == posX.Row + 2))
+			VulnerableEnPassant = pawn;
+		else
+			VulnerableEnPassant = null;
+	}
 
-        if (!piece.IsWhite.Equals(IsWhiteTurn))
-            throw new InvalidOperationException("The select piece is not yours");
+	public void ValidateMoveFrom(Position posX) {
+		if (Board[posX] is not Piece piece)
+			throw new InvalidOperationException("There is no piece in the selected position");
 
-        if (!piece.AnyPossibleMove())
-            throw new InvalidOperationException("The are no possible movements for the select piece");
-    }
+		if (!piece.IsWhite.Equals(IsWhiteTurn))
+			throw new InvalidOperationException("The select piece is not yours");
 
-    public void ValidateMoveTo(Position posX, Position posY) {
-        if (!Board[posX]!.PossibleMove(posY))
-            throw new InvalidOperationException("Invalid movement");
-    }
+		if (!piece.AnyPossibleMove())
+			throw new InvalidOperationException("The are no possible movements for the select piece");
+	}
 
-    private bool IsInCheck(bool isWhite) {
-        Piece? k = GetKing(isWhite);
-        ArgumentNullException.ThrowIfNull(k);
+	public void ValidateMoveTo(Position posX, Position posY) {
+		if (!Board[posX]!.PossibleMove(posY))
+			throw new InvalidOperationException("Invalid movement");
+	}
 
-        foreach (Piece piece in AvailablePieces(!isWhite)) {
-            var moves = piece.PossibleMoves();
-            if (moves[k.Position!.Row, k.Position.Column])
-                return true;
-        }
+	private bool IsInCheck(bool isWhite) {
+		Piece? k = GetKing(isWhite);
+		ArgumentNullException.ThrowIfNull(k);
 
-        return false;
-    }
+		foreach (Piece piece in AvailablePieces(!isWhite)) {
+			var moves = piece.PossibleMoves();
+			if (moves[k.Position!.Row, k.Position.Column])
+				return true;
+		}
 
-    private bool Checkmate(bool isWhite) {
-        if (!IsInCheck(isWhite))
-            return false;
+		return false;
+	}
 
-        foreach (Piece piece in AvailablePieces(isWhite)) {
-            var moves = piece.PossibleMoves();
-            for (int i = 0; i < Board.Dimensions; i++) {
-                for (int j = 0; j < Board.Dimensions; j++) {
-                    if (moves[i, j]) {
-                        Position posX = piece.Position!;
-                        Position posY = new(i, j);
-                        Piece? target = DoMove(posX, posY);
-                        bool isCheckmate = IsInCheck(isWhite);
-                        UndoMove(posX, posY, target);
-                        if (!isCheckmate)
-                            return false;
-                    }
-                }
-            }
-        }
+	private bool Checkmate(bool isWhite) {
+		if (!IsInCheck(isWhite))
+			return false;
 
-        return true;
-    }
+		foreach (Piece piece in AvailablePieces(isWhite)) {
+			var moves = piece.PossibleMoves();
+			for (int i = 0; i < Board.Dimensions; i++) {
+				for (int j = 0; j < Board.Dimensions; j++) {
+					if (moves[i, j]) {
+						Position posX = piece.Position!;
+						Position posY = new(i, j);
+						Piece? target = DoMove(posX, posY);
+						bool isCheckmate = IsInCheck(isWhite);
+						UndoMove(posX, posY, target);
+						if (!isCheckmate)
+							return false;
+					}
+				}
+			}
+		}
 
-    private void AddPieces() {
-        { // White pieces
-            for (int i = 0; i < Board.Dimensions; i++) {
-                Pawn pawn = new(Board, true);
-                Board.Add(pawn, new Position(6, i));
-                _pieces.Add(pawn);
-            }
+		return true;
+	}
 
-            Rook rook = new(Board, true);
-            Board.Add(rook, new Position(7, 0));
-            _pieces.Add(rook);
+	private void AddPieces() {
+		{ // White pieces
+			for (int i = 0; i < Board.Dimensions; i++) {
+				Pawn pawn = new(this, Board, true);
+				Board.Add(pawn, new Position(6, i));
+				_pieces.Add(pawn);
+			}
 
-            rook = new Rook(Board, true);
-            Board.Add(rook, new Position(7, 7));
-            _pieces.Add(rook);
+			Rook rook = new(Board, true);
+			Board.Add(rook, new Position(7, 0));
+			_pieces.Add(rook);
 
-            Knight knight = new(Board, true);
-            Board.Add(knight, new Position(7, 1));
-            _pieces.Add(knight);
+			rook = new Rook(Board, true);
+			Board.Add(rook, new Position(7, 7));
+			_pieces.Add(rook);
 
-            knight = new Knight(Board, true);
-            Board.Add(knight, new Position(7, 6));
-            _pieces.Add(knight);
+			Knight knight = new(Board, true);
+			Board.Add(knight, new Position(7, 1));
+			_pieces.Add(knight);
 
-            Bishop bishop = new(Board, true);
-            Board.Add(bishop, new Position(7, 2));
-            _pieces.Add(bishop);
+			knight = new Knight(Board, true);
+			Board.Add(knight, new Position(7, 6));
+			_pieces.Add(knight);
 
-            bishop = new Bishop(Board, true);
-            Board.Add(bishop, new Position(7, 5));
-            _pieces.Add(bishop);
+			Bishop bishop = new(Board, true);
+			Board.Add(bishop, new Position(7, 2));
+			_pieces.Add(bishop);
 
-            King king = new(this, Board, true);
-            Board.Add(king, new Position(7, 4));
-            _pieces.Add(king);
+			bishop = new Bishop(Board, true);
+			Board.Add(bishop, new Position(7, 5));
+			_pieces.Add(bishop);
 
-            Queen queen = new(Board, true);
-            Board.Add(queen, new Position(7, 3));
-            _pieces.Add(queen);
-        }
+			King king = new(this, Board, true);
+			Board.Add(king, new Position(7, 4));
+			_pieces.Add(king);
 
-        { // Black pieces
-            for (int i = 0; i < Board.Dimensions; i++) {
-                Pawn pawn = new(Board);
-                Board.Add(pawn, new Position(1, i));
-                _pieces.Add(pawn);
-            }
+			Queen queen = new(Board, true);
+			Board.Add(queen, new Position(7, 3));
+			_pieces.Add(queen);
+		}
 
-            Rook rook = new(Board);
-            Board.Add(rook, new Position(0, 0));
-            _pieces.Add(rook);
+		{ // Black pieces
+			for (int i = 0; i < Board.Dimensions; i++) {
+				Pawn pawn = new(this, Board);
+				Board.Add(pawn, new Position(1, i));
+				_pieces.Add(pawn);
+			}
 
-            rook = new Rook(Board);
-            Board.Add(rook, new Position(0, 7));
-            _pieces.Add(rook);
+			Rook rook = new(Board);
+			Board.Add(rook, new Position(0, 0));
+			_pieces.Add(rook);
 
-            Knight knight = new(Board);
-            Board.Add(knight, new Position(0, 1));
-            _pieces.Add(knight);
+			rook = new Rook(Board);
+			Board.Add(rook, new Position(0, 7));
+			_pieces.Add(rook);
 
-            knight = new Knight(Board);
-            Board.Add(knight, new Position(0, 6));
-            _pieces.Add(knight);
+			Knight knight = new(Board);
+			Board.Add(knight, new Position(0, 1));
+			_pieces.Add(knight);
 
-            Bishop bishop = new(Board);
-            Board.Add(bishop, new Position(0, 2));
-            _pieces.Add(bishop);
+			knight = new Knight(Board);
+			Board.Add(knight, new Position(0, 6));
+			_pieces.Add(knight);
 
-            bishop = new Bishop(Board);
-            Board.Add(bishop, new Position(0, 5));
-            _pieces.Add(bishop);
+			Bishop bishop = new(Board);
+			Board.Add(bishop, new Position(0, 2));
+			_pieces.Add(bishop);
 
-            King king = new(this, Board);
-            Board.Add(king, new Position(0, 4));
-            _pieces.Add(king);
+			bishop = new Bishop(Board);
+			Board.Add(bishop, new Position(0, 5));
+			_pieces.Add(bishop);
 
-            Queen queen = new(Board);
-            Board.Add(queen, new Position(0, 3));
-            _pieces.Add(queen);
-        }
-    }
+			King king = new(this, Board);
+			Board.Add(king, new Position(0, 4));
+			_pieces.Add(king);
 
-    private Piece? DoMove(Position posX, Position posY) {
-        Piece? piece = Board.RemoveAt(posX);
+			Queen queen = new(Board);
+			Board.Add(queen, new Position(0, 3));
+			_pieces.Add(queen);
+		}
+	}
 
-        piece!.IncreaseMovements();
+	private Piece? DoMove(Position posX, Position posY) {
+		Piece? piece = Board.RemoveAt(posX);
 
-        Piece? target = Board.RemoveAt(posY);
+		piece!.IncreaseMovements();
 
-        Board.Add(piece, posY);
+		Piece? target = Board.RemoveAt(posY);
 
-        if (target is not null)
-            _captured.Add(target);
+		Board.Add(piece, posY);
 
-        if (piece is King && posY.Column == posX.Column + 2) {
-            Position rookPosX = new(posX.Row, posX.Column + 3);
-            Position rookPosY = new(posX.Row, posX.Column + 1);
-            Piece? rook = Board.RemoveAt(rookPosX);
-            rook!.IncreaseMovements();
-            Board.Add(rook, rookPosY);
-        }
+		if (target is not null)
+			_captured.Add(target);
 
-        if (piece is King && posY.Column == posX.Column - 2) {
-            Position rookPosX = new(posX.Row, posX.Column - 4);
-            Position rookPosY = new(posX.Row, posX.Column - 1);
-            Piece? rook = Board.RemoveAt(rookPosX);
-            rook!.IncreaseMovements();
-            Board.Add(rook, rookPosY);
-        }
+		if (piece is King && posY.Column == posX.Column + 2) {
+			Position rookPosX = new(posX.Row, posX.Column + 3);
+			Position rookPosY = new(posX.Row, posX.Column + 1);
+			Piece? rook = Board.RemoveAt(rookPosX);
+			rook!.IncreaseMovements();
+			Board.Add(rook, rookPosY);
+		}
 
-        return target;
-    }
+		if (piece is King && posY.Column == posX.Column - 2) {
+			Position rookPosX = new(posX.Row, posX.Column - 4);
+			Position rookPosY = new(posX.Row, posX.Column - 1);
+			Piece? rook = Board.RemoveAt(rookPosX);
+			rook!.IncreaseMovements();
+			Board.Add(rook, rookPosY);
+		}
 
-    private void UndoMove(Position posX, Position posY, Piece? target) {
-        Piece? piece = Board.RemoveAt(posY);
-        piece!.DecreaseMovements();
+		if (piece is Pawn) {
+			if (posX.Column != posY.Column && target is null) {
+				Position pos;
+				if (piece.IsWhite)
+					pos = new Position(posY.Row + 1, posY.Column);
+				else
+					pos = new Position(posY.Row - 1, posY.Column);
 
-        if (target is not null) {
-            Board.Add(target, posY);
-            _captured.Remove(target);
-        }
+				target = Board.RemoveAt(pos);
+				_captured.Add(target!);
+			}
+		}
 
-        Board.Add(piece!, posX);
+		return target;
+	}
 
-        if (piece is King && posY.Column == posX.Column + 2) {
-            Position rookPosX = new(posX.Row, posX.Column + 3);
-            Position rookPosY = new(posX.Row, posX.Column + 1);
-            Piece? rook = Board.RemoveAt(rookPosY);
-            rook!.DecreaseMovements();
-            Board.Add(rook, rookPosX);
-        }
+	private void UndoMove(Position posX, Position posY, Piece? target) {
+		Piece? piece = Board.RemoveAt(posY);
+		piece!.DecreaseMovements();
 
-        if (piece is King && posY.Column == posX.Column - 2) {
-            Position rookPosX = new(posX.Row, posX.Column - 4);
-            Position rookPosY = new(posX.Row, posX.Column - 1);
-            Piece? rook = Board.RemoveAt(rookPosY);
-            rook!.DecreaseMovements();
-            Board.Add(rook, rookPosX);
-        }
-    }
+		if (target is not null) {
+			Board.Add(target, posY);
+			_captured.Remove(target);
+		}
 
-    private void TurnRound() {
-        IsWhiteTurn = !IsWhiteTurn;
-        Turn++;
-    }
+		Board.Add(piece!, posX);
 
-    private HashSet<Piece> Captured(bool isWhite)
-        => _captured.Where(x => x.IsWhite.Equals(isWhite)).ToHashSet();
+		if (piece is King && posY.Column == posX.Column + 2) {
+			Position rookPosX = new(posX.Row, posX.Column + 3);
+			Position rookPosY = new(posX.Row, posX.Column + 1);
+			Piece? rook = Board.RemoveAt(rookPosY);
+			rook!.DecreaseMovements();
+			Board.Add(rook, rookPosX);
+		}
 
-    private HashSet<Piece> AvailablePieces(bool isWhite) {
-        var pieces = _pieces.Where(x => x.IsWhite.Equals(isWhite)).ToHashSet();
-        pieces.ExceptWith(Captured(isWhite));
-        return pieces;
-    }
+		if (piece is King && posY.Column == posX.Column - 2) {
+			Position rookPosX = new(posX.Row, posX.Column - 4);
+			Position rookPosY = new(posX.Row, posX.Column - 1);
+			Piece? rook = Board.RemoveAt(rookPosY);
+			rook!.DecreaseMovements();
+			Board.Add(rook, rookPosX);
+		}
 
-    private Piece? GetKing(bool isWhite)
-        => AvailablePieces(isWhite).SingleOrDefault(x => x is King);
+		if (piece is Pawn) {
+			if (posX.Column != posY.Column && target == VulnerableEnPassant) {
+				Piece? pawn = Board.RemoveAt(posY);
+				Position pos;
+				if (piece.IsWhite)
+					pos = new(3, posY.Column);
+				else
+					pos = new(4, posY.Column);
+
+				Board.Add(pawn!, pos);
+			}
+		}
+	}
+
+	private void TurnRound() {
+		IsWhiteTurn = !IsWhiteTurn;
+		Turn++;
+	}
+
+	private HashSet<Piece> Captured(bool isWhite)
+		=> _captured.Where(x => x.IsWhite.Equals(isWhite)).ToHashSet();
+
+	private HashSet<Piece> AvailablePieces(bool isWhite) {
+		var pieces = _pieces.Where(x => x.IsWhite.Equals(isWhite)).ToHashSet();
+		pieces.ExceptWith(Captured(isWhite));
+		return pieces;
+	}
+
+	private Piece? GetKing(bool isWhite)
+		=> AvailablePieces(isWhite).SingleOrDefault(x => x is King);
 }
